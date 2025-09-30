@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/views/pages/create_line_manager.dart';
+import 'package:test_project/views/pages/employeelist_page.dart';
 
 // import 'create_user_leave_page.dart'; // You’ll create this later
 
@@ -10,11 +11,11 @@ class AdminSettingsPage extends StatelessWidget {
       icon: Icons.supervisor_account,
       page: CreateLineManagerPage(),
     ),
-    // _AdminOption(
-    //   title: "Create User Leave",
-    //   icon: Icons.add_circle,
-    //   page: CreateUserLeavePage(), // Placeholder for now
-    // ),
+    _AdminOption(
+      title: "View Employees",
+      icon: Icons.person_3_outlined,
+      page: EmployeeListPage(),  //Placeholder for now
+    ),
   ];
 
   @override

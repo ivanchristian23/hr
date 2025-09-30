@@ -7,21 +7,15 @@ import 'package:test_project/views/pages/approve_req_page.dart';
 import 'package:test_project/views/pages/leave_page.dart';
 import 'package:test_project/views/pages/home_page.dart';
 import 'package:test_project/views/pages/profile_page.dart';
+import 'package:test_project/views/pages/welcome_page.dart';
 import 'package:test_project/views/widgets/navbar_widget.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 List<Widget> getPagesForRole(String role) {
   if (role == 'admin') {
-    return [
-      HomePage(),
-      ApproveRequestPage(),
-      AdminSettingsPage(),
-    ];
+    return [HomePage(), ApproveRequestPage(), AdminSettingsPage()];
   } else {
-    return [
-      HomePage(),
-      LeavePage(),
-      ProfilePage(),
-    ];
+    return [HomePage(), LeavePage(), ProfilePage()];
   }
 }
 
@@ -51,6 +45,30 @@ class WidgetTree extends StatelessWidget {
                 return Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode);
               },
             ),
+          ),
+          const SizedBox(width: 8), // 👈 Adds spacing before logout button
+          // Logout button
+          IconButton(
+            onPressed: () async {
+              const storage = FlutterSecureStorage();
+
+              // Delete the stored token
+              await storage.delete(key: 'auth_token');
+
+              // Optionally, reset selected page index
+              selectedPageNotifier.value = 0;
+
+              // Navigate back to Welcome/Login page
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const WelcomePage(), // Make sure to import WelcomePage
+                ),
+              );
+            },
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
           ),
           // IconButton(
           //   onPressed: () {

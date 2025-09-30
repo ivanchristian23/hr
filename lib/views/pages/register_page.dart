@@ -19,6 +19,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
   DateTime? _dateOfJoin;
   String? _selectedManager;
+  String? _selectedUserType;
+
+  final List<String> _userTypes = [
+    "Head office Employee",
+    "External Employee"
+  ];
+
   
   List<Map<String, dynamic>> _lineManagers = [];
 
@@ -61,6 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'job_title': controllerJobTitle.text,
         'date_of_join': _dateOfJoin!.toIso8601String(),
         'line_manager_id': _selectedManager,
+        'user_type': _selectedUserType,
       }),
     );
 
@@ -193,7 +201,24 @@ class _RegisterPageState extends State<RegisterPage> {
                 },
                 validator: (value) => value == null ? 'Select a manager' : null,
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 30),SizedBox(height: 15),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: "User Type"),
+                value: _selectedUserType,
+                items: _userTypes.map((type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedUserType = value;
+                  });
+                },
+                validator: (value) => value == null ? 'Select user type' : null,
+              ),
+
               isLoading
                   ? CircularProgressIndicator()
                   : FilledButton(

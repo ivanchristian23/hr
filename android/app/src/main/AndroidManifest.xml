@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET" /> 
     <!-- this will always be in android/src/debug/AndroidManifest.xml -->
     <application
-        android:label="test_project"
+        android:label="Proztec Leave System"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

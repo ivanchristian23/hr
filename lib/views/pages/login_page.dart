@@ -102,7 +102,19 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: Text(widget.title),
                       ),
-                      SizedBox(height: 100.0),
+                       const SizedBox(height: 20.0),
+
+                      // Tagline below login button
+                      const Text(
+                        '"Success is a constant evolution"\n- Syed Rizwan Shah (CEO)',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 40.0),
                     ],
                   ),
                 );

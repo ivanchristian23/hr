@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:test_project/views/pages/attendance_page.dart';
+import 'package:test_project/views/pages/leave_page.dart';
+import 'package:test_project/views/pages/mydetails_page.dart';
+import 'package:test_project/views/pages/raise_request_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -6,11 +10,12 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> menuItems = [
-      {'title': 'My Details', 'route': '/details'},
-      {'title': 'Leaves', 'route': '/leaves'},
-      {'title': 'Raise Request', 'route': '/request'},
-      {'title': 'Attendance', 'route': '/attendance'},
-    ];
+    {'title': 'My Details', 'page': const MyDetailsPage()},
+    {'title': 'Leaves', 'page': const LeavePage()},       // <- import your pages
+    {'title': 'Raise Request', 'page': const RaiseRequestPage()},
+    {'title': 'Attendance', 'page': const AttendancePage()},
+  ];
+
 
     return Scaffold(
       body: SafeArea(
@@ -46,8 +51,13 @@ class HomePage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, menuItems[index]['route']);
-                    },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => menuItems[index]['page'],
+                            ),
+                          );
+                        },
                     child: Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
