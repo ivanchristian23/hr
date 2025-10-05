@@ -38,7 +38,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
   Future<void> fetchLeaveBalances() async {
     final token = await storage.read(key: 'auth_token');
     final res = await http.get(
-      Uri.parse('http://10.0.2.2:3000/user/leave-balances'),
+      Uri.parse('http://10.0.2.2:3000/users/user/leave-balances'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -58,7 +58,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
 
     // 1️⃣ Get user ID
     final userRes = await http.get(
-      Uri.parse("http://10.0.2.2:3000/user/id"),
+      Uri.parse("http://10.0.2.2:3000/users/user/id"),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (userRes.statusCode == 200) {
@@ -109,7 +109,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
 
   final request = http.MultipartRequest(
     'POST',
-    Uri.parse("http://10.0.2.2:3000/leaves"),
+    Uri.parse("http://10.0.2.2:3000/leaves/createleaves"),
   );
 
   request.fields['user_id'] = userId.toString();

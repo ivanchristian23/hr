@@ -19,7 +19,7 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
   }
 
   Future<void> fetchEmployees() async {
-    final res = await http.get(Uri.parse("http://10.0.2.2:3000/userslist"));
+    final res = await http.get(Uri.parse("http://10.0.2.2:3000/users/userslist"));
     if (res.statusCode == 200) {
       final data = json.decode(res.body);
       setState(() {

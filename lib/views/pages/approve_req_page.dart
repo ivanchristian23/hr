@@ -27,7 +27,7 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
     if (token == null) return;
 
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/manager/requests"),
+      Uri.parse("http://10.0.2.2:3000/managers/requests"),
       headers: {'Authorization': 'Bearer $token'},
     );
 

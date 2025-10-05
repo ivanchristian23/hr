@@ -29,7 +29,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     }
 
     final res = await http.post(
-      Uri.parse('http://10.0.2.2:3000/reset-password'),
+      Uri.parse('http://10.0.2.2:3000/password/reset-password'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': widget.email, 'new_password': passwordController.text}),
     );

@@ -25,7 +25,7 @@ class _MyDetailsPageState extends State<MyDetailsPage> {
     if (token == null) throw Exception("No auth token found");
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:3000/user/home'),
+      Uri.parse('http://10.0.2.2:3000/users/user/home'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

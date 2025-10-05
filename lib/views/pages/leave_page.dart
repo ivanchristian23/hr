@@ -25,7 +25,7 @@ class _LeavePageState extends State<LeavePage> {
     if (token == null) return;
 
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/user/leaves"),
+      Uri.parse("http://10.0.2.2:3000/leaves/user/leaves"),
       headers: {'Authorization': 'Bearer $token'},
     );
 

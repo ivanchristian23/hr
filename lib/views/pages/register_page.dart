@@ -58,7 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3000/register'),
+      Uri.parse('http://10.0.2.2:3000/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'first_name': controllerFirstName.text,
@@ -217,7 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
                 validator: (value) => value == null ? 'Select user type' : null,
-              ),
+              ),SizedBox(height: 60),
 
               isLoading
                   ? CircularProgressIndicator()

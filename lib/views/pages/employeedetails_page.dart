@@ -23,7 +23,7 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
 
   Future<void> fetchUserDetails() async {
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/userslist/${widget.userId}"),
+      Uri.parse("http://10.0.2.2:3000/users/userslist/${widget.userId}"),
     );
     if (res.statusCode == 200) {
       setState(() {
@@ -31,7 +31,8 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
       });
     }
   }
-   /// Format date as "dd MMM yyyy"
+
+  /// Format date as "dd MMM yyyy"
   String formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return "Not Available";
     try {
@@ -50,10 +51,13 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
         children: [
           Text(
             "$label: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           Expanded(
-            child: Text(value ?? "Not Available"),
+            child: Text(
+              value ?? "Not Available",
+              style: TextStyle(fontSize: 14),
+            ),
           ),
         ],
       ),
@@ -95,14 +99,23 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Personal Information",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      "Personal Information",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Divider(),
                     buildInfoRow("Job Title", userData!['job_title']),
+                    SizedBox(height: 10),
                     buildInfoRow("Line Manager", userData!['line_manager']),
-                    buildInfoRow("Date of Joining",
-                       formatDate(userData!['date_of_joining'])),
+                    SizedBox(height: 10),
+                    buildInfoRow(
+                      "Date of Joining",
+                      formatDate(userData!['date_of_joining']),
+                      
+                    ),SizedBox(height: 10),
                   ],
                 ),
               ),
@@ -119,26 +132,80 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Leave Information",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      "Leave Information",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Divider(),
-                    buildInfoRow("Allowed Leave",
-                        "${leaves['allowed_leave'] ?? '0'}"),
-                    buildInfoRow("Consumed Annual Leave",
-                        "${leaves['consumed_annual_leave'] ?? '0'}"),
-                    buildInfoRow("Sick Leave Balance",
-                        "${leaves['sick_leave_balance'] ?? '0'}"),
-                    buildInfoRow("Consumed Sick Leave",
-                        "${leaves['consumed_sick_leave'] ?? '0'}"),
-                    buildInfoRow("Compassionate Leave",
-                        "${leaves['compassionate_leave_consumed'] ?? '0'}"),
-                    buildInfoRow("Maternity Leaves",
-                        "${leaves['maternity_leaves_consumed'] ?? '0'}"),
-                    buildInfoRow("Balance", "${leaves['balance'] ?? '0'}"),
+                    buildInfoRow(
+                      "Allowed Leave",
+                      "${leaves['allowed_leave'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Consumed Annual Leave",
+                      "${leaves['consumed_annual_leave'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Sick Leave Balance",
+                      "${leaves['sick_leave_balance'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Consumed Sick Leave",
+                      "${leaves['consumed_sick_leave'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Compassionate Leave",
+                      "${leaves['compassionate_leave_consumed'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Maternity Leaves",
+                      "${leaves['maternity_leaves_consumed'] ?? 'HR needs to update information'}",
+                    ),SizedBox(height: 10),
+                    buildInfoRow(
+                      "Balance",
+                      "${leaves['balance'] ?? 'HR needs to update information'}",
+                    ),
                   ],
                 ),
               ),
+            ),
+            SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Navigate to edit personal info page
+                  },
+                  icon: Icon(Icons.edit),
+                  label: Text("Edit Personal Info"),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    textStyle: TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Navigate to edit leave info page
+                  },
+                  icon: Icon(Icons.edit_calendar),
+                  label: Text("Edit Leave Info"),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    textStyle: TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -143,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
   void onLoginPressed() async {
     final storage = FlutterSecureStorage();
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3000/login'), // For Android Emulator
+      Uri.parse('http://10.0.2.2:3000/auth/login'), // For Android Emulator
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': controllerEmail.text,

@@ -6,7 +6,7 @@ import 'package:test_project/views/pages/admin_settings_page.dart';
 import 'package:test_project/views/pages/approve_req_page.dart';
 import 'package:test_project/views/pages/leave_page.dart';
 import 'package:test_project/views/pages/home_page.dart';
-import 'package:test_project/views/pages/profile_page.dart';
+import 'package:test_project/views/pages/raise_request_page.dart';
 import 'package:test_project/views/pages/welcome_page.dart';
 import 'package:test_project/views/widgets/navbar_widget.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -15,7 +15,7 @@ List<Widget> getPagesForRole(String role) {
   if (role == 'admin') {
     return [HomePage(), ApproveRequestPage(), AdminSettingsPage()];
   } else {
-    return [HomePage(), LeavePage(), ProfilePage()];
+    return [HomePage(), LeavePage(), RaiseRequestPage() ];
   }
 }
 

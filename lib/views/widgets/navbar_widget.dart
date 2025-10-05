@@ -37,7 +37,7 @@ class NavbarWidget extends StatelessWidget {
             : [
                 NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
                 NavigationDestination(icon: Icon(Icons.add), label: 'Leave'),
-                NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+                NavigationDestination(icon: Icon(Icons.receipt), label: 'Request Page'),
               ];
 
         return ValueListenableBuilder(
