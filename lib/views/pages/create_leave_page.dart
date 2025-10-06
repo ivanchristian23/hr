@@ -38,7 +38,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
   Future<void> fetchLeaveBalances() async {
     final token = await storage.read(key: 'auth_token');
     final res = await http.get(
-      Uri.parse('http://10.0.2.2:3000/users/user/leave-balances'),
+      Uri.parse('https://coolbuffs.com/api/users/user/leave-balances'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -58,7 +58,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
 
     // 1️⃣ Get user ID
     final userRes = await http.get(
-      Uri.parse("http://10.0.2.2:3000/users/user/id"),
+      Uri.parse("https://coolbuffs.com/api/users/user/id"),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (userRes.statusCode == 200) {
@@ -69,7 +69,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
 
       // 2️⃣ Get line_manager_id
       final managerRes = await http.get(
-        Uri.parse("http://10.0.2.2:3000/user/line-manager/${userData['id']}"),
+        Uri.parse("https://coolbuffs.com/api/user/line-manager/${userData['id']}"),
       );
       if (managerRes.statusCode == 200) {
         final managerData = jsonDecode(managerRes.body);
@@ -109,7 +109,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
 
   final request = http.MultipartRequest(
     'POST',
-    Uri.parse("http://10.0.2.2:3000/leaves/createleaves"),
+    Uri.parse("https://coolbuffs.com/api/leaves/createleaves"),
   );
 
   request.fields['user_id'] = userId.toString();

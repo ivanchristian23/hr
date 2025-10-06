@@ -8,7 +8,6 @@ class EmployeeDetailsPage extends StatefulWidget {
   const EmployeeDetailsPage({super.key, required this.userId});
 
   @override
-  // ignore: library_private_types_in_public_api
   _EmployeeDetailsPageState createState() => _EmployeeDetailsPageState();
 }
 
@@ -23,29 +22,32 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
 
   Future<void> fetchUserDetails() async {
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/users/userslist/${widget.userId}"),
+      Uri.parse("https://coolbuffs.com/api/users/userslist/${widget.userId}"),
     );
     if (res.statusCode == 200) {
       setState(() {
-        userData = json.decode(res.body);
+        final decoded = json.decode(res.body);
+        userData = Map<String, dynamic>.from(decoded);
+        if (userData!['leaves'] != null) {
+          userData!['leaves'] = Map<String, dynamic>.from(userData!['leaves']);
+        }
       });
     }
   }
 
-  /// Format date as "dd MMM yyyy"
   String formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return "Not Available";
     try {
       final date = DateTime.parse(dateString);
       return DateFormat("dd MMM yyyy").format(date);
     } catch (e) {
-      return dateString; // fallback in case parsing fails
+      return dateString;
     }
   }
 
   Widget buildInfoRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,6 +66,199 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
     );
   }
 
+  void showEditPersonalInfoModal(BuildContext context) {
+    final jobTitleController = TextEditingController(
+      text: userData?['job_title'] ?? '',
+    );
+    final lineManagerController = TextEditingController(
+      text: userData?['line_manager'] ?? '',
+    );
+    final userTypeController = TextEditingController(
+      text: userData?['user_type'] ?? '',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ), // for keyboard
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Edit Personal Information",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: jobTitleController,
+              decoration: InputDecoration(labelText: "Job Title"),
+            ),
+            TextField(
+              controller: lineManagerController,
+              decoration: InputDecoration(labelText: "Line Manager"),
+            ),
+            TextField(
+              controller: userTypeController,
+              decoration: InputDecoration(labelText: "User Type"),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await updatePersonalInfo(
+                  jobTitleController.text,
+                  lineManagerController.text,
+                  userTypeController.text,
+                );
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.save),
+              label: Text("Save Changes"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void showEditLeaveInfoModal(
+    BuildContext context,
+    Map<String, dynamic> leaves,
+  ) {
+    final allowedLeave = TextEditingController(
+      text: leaves['allowed_leave']?.toString() ?? '',
+    );
+    final consumedAnnual = TextEditingController(
+      text: leaves['consumed_annual_leave']?.toString() ?? '',
+    );
+    final sickBalance = TextEditingController(
+      text: leaves['sick_leave_balance']?.toString() ?? '',
+    );
+    final consumedSick = TextEditingController(
+      text: leaves['consumed_sick_leave']?.toString() ?? '',
+    );
+    final compassionate = TextEditingController(
+      text: leaves['compassionate_leave_consumed']?.toString() ?? '',
+    );
+    final maternity = TextEditingController(
+      text: leaves['maternity_leaves_consumed']?.toString() ?? '',
+    );
+    final balance = TextEditingController(
+      text: leaves['balance']?.toString() ?? '',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Edit Leave Information",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: allowedLeave,
+                decoration: InputDecoration(labelText: "Allowed Leave"),
+              ),
+              TextField(
+                controller: consumedAnnual,
+                decoration: InputDecoration(labelText: "Consumed Annual Leave"),
+              ),
+              TextField(
+                controller: sickBalance,
+                decoration: InputDecoration(labelText: "Sick Leave Balance"),
+              ),
+              TextField(
+                controller: consumedSick,
+                decoration: InputDecoration(labelText: "Consumed Sick Leave"),
+              ),
+              TextField(
+                controller: compassionate,
+                decoration: InputDecoration(labelText: "Compassionate Leave"),
+              ),
+              TextField(
+                controller: maternity,
+                decoration: InputDecoration(labelText: "Maternity Leave"),
+              ),
+              TextField(
+                controller: balance,
+                decoration: InputDecoration(labelText: "Balance"),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await updateLeaveInfo({
+                    "allowed_leave": allowedLeave.text,
+                    "consumed_annual_leave": consumedAnnual.text,
+                    "sick_leave_balance": sickBalance.text,
+                    "consumed_sick_leave": consumedSick.text,
+                    "compassionate_leave_consumed": compassionate.text,
+                    "maternity_leaves_consumed": maternity.text,
+                    "balance": balance.text,
+                  });
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.save),
+                label: Text("Save Changes"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> updatePersonalInfo(
+    String jobTitle,
+    String manager,
+    String userType,
+  ) async {
+    final response = await http.put(
+      Uri.parse("https://coolbuffs.com/api/users/edit_user_info/${widget.userId}"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'job_title': jobTitle,
+        'line_manager': manager,
+        'user_type': userType,
+      }),
+    );
+    if (response.statusCode == 200) {
+      fetchUserDetails();
+    }
+  }
+
+  Future<void> updateLeaveInfo(Map<String, dynamic> data) async {
+    final response = await http.put(
+      Uri.parse("https://coolbuffs.com/api/users/edit_user_leave/${widget.userId}"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(data),
+    );
+    if (response.statusCode == 200) {
+      fetchUserDetails();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (userData == null) {
@@ -73,7 +268,7 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
       );
     }
 
-    final leaves = userData!['leaves'] ?? {};
+    final leaves = Map<String, dynamic>.from(userData!['leaves'] ?? {});
 
     return Scaffold(
       appBar: AppBar(
@@ -108,14 +303,12 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                     ),
                     Divider(),
                     buildInfoRow("Job Title", userData!['job_title']),
-                    SizedBox(height: 10),
                     buildInfoRow("Line Manager", userData!['line_manager']),
-                    SizedBox(height: 10),
+                    buildInfoRow("Employment Type", userData!['user_type']),
                     buildInfoRow(
                       "Date of Joining",
                       formatDate(userData!['date_of_joining']),
-                      
-                    ),SizedBox(height: 10),
+                    ),
                   ],
                 ),
               ),
@@ -142,31 +335,31 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                     Divider(),
                     buildInfoRow(
                       "Allowed Leave",
-                      "${leaves['allowed_leave'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "${leaves['allowed_leave'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
                       "Consumed Annual Leave",
-                      "${leaves['consumed_annual_leave'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "${leaves['consumed_annual_leave'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
                       "Sick Leave Balance",
-                      "${leaves['sick_leave_balance'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "${leaves['sick_leave_balance'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
                       "Consumed Sick Leave",
-                      "${leaves['consumed_sick_leave'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "${leaves['consumed_sick_leave'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
                       "Compassionate Leave",
-                      "${leaves['compassionate_leave_consumed'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "${leaves['compassionate_leave_consumed'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
-                      "Maternity Leaves",
-                      "${leaves['maternity_leaves_consumed'] ?? 'HR needs to update information'}",
-                    ),SizedBox(height: 10),
+                      "Maternity Leave",
+                      "${leaves['maternity_leaves_consumed'] ?? 'HR needs to update'}",
+                    ),
                     buildInfoRow(
                       "Balance",
-                      "${leaves['balance'] ?? 'HR needs to update information'}",
+                      "${leaves['balance'] ?? 'HR needs to update'}",
                     ),
                   ],
                 ),
@@ -178,32 +371,14 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Navigate to edit personal info page
-                  },
+                  onPressed: () => showEditPersonalInfoModal(context),
                   icon: Icon(Icons.edit),
                   label: Text("Edit Personal Info"),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    textStyle: TextStyle(fontSize: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Navigate to edit leave info page
-                  },
+                  onPressed: () => showEditLeaveInfoModal(context, leaves),
                   icon: Icon(Icons.edit_calendar),
                   label: Text("Edit Leave Info"),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    textStyle: TextStyle(fontSize: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
                 ),
               ],
             ),

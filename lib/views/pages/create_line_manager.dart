@@ -23,7 +23,7 @@ class _CreateLineManagerPageState extends State<CreateLineManagerPage> {
   }
 
   Future<void> fetchUsers() async {
-    final response = await http.get(Uri.parse("http://10.0.2.2:3000/users/linemanagerDropdown")); // Replace with your server IP
+    final response = await http.get(Uri.parse("https://coolbuffs.com/api/users/linemanagerDropdown")); // Replace with your server IP
     print(response.body);
     if (response.statusCode == 200) {
       setState(() {
@@ -41,7 +41,7 @@ class _CreateLineManagerPageState extends State<CreateLineManagerPage> {
     _formKey.currentState!.save();
 
     final response = await http.post(
-      Uri.parse("http://10.0.2.2:3000/managers/line-managers"), // Replace with your server IP
+      Uri.parse("https://coolbuffs.com/api/managers/line-managers"), // Replace with your server IP
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "manager_id": selectedManagerId,

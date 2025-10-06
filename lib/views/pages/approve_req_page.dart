@@ -27,7 +27,7 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
     if (token == null) return;
 
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/managers/requests"),
+      Uri.parse("https://coolbuffs.com/api/managers/requests"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -50,7 +50,7 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
 
   Future<String> fetchUserName(int userId, String token) async {
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:3000/user/name/$userId"),
+      Uri.parse("https://coolbuffs.com/api/user/name/$userId"),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode == 200) {
@@ -84,7 +84,7 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
     if (token == null) return;
 
     final res = await http.put(
-      Uri.parse("http://10.0.2.2:3000/leaves/$leaveId"),
+      Uri.parse("https://coolbuffs.com/api/leaves/$leaveId"),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'
@@ -108,7 +108,7 @@ Future<void> downloadAttachment(int leaveId) async {
     return;
   }
 
-  final url = 'http://10.0.2.2:3000/leaves/$leaveId/attachment';
+  final url = 'https://coolbuffs.com/api/leaves/$leaveId/attachment';
 
   try {
     final response = await http.get(

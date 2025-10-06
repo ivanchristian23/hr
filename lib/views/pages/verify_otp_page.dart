@@ -29,7 +29,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
   Future<void> verifyOtp() async {
     print(widget.email);
     final res = await http.post(
-      Uri.parse('http://10.0.2.2:3000/password/verify-otp'),
+      Uri.parse('https://coolbuffs.com/api/password/verify-otp'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': widget.email, 'otp': otpController.text}),
     );

@@ -33,7 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isLoading = false;
 
   Future<void> fetchLineManagers() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:3000/line_managers'));
+    final response = await http.get(Uri.parse('https://coolbuffs.com/api/line_managers'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
@@ -58,7 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3000/auth/register'),
+      Uri.parse('https://coolbuffs.com/api/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'first_name': controllerFirstName.text,
