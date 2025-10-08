@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/views/pages/create_line_manager.dart';
+import 'package:test_project/views/pages/employee_documents_page.dart';
 import 'package:test_project/views/pages/employeelist_page.dart';
 
 // import 'create_user_leave_page.dart'; // You’ll create this later
@@ -15,6 +16,11 @@ class AdminSettingsPage extends StatelessWidget {
       title: "View Employees",
       icon: Icons.person_3_outlined,
       page: EmployeeListPage(),  //Placeholder for now
+    ),
+    _AdminOption(
+      title: "View Employee Documents",
+      icon: Icons.edit_document,
+      page: EmployeeDocumentsListPage(),  //Placeholder for now
     ),
   ];
 

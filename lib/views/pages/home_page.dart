@@ -1,21 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+// Import your existing pages
 import 'package:test_project/views/pages/attendance_page.dart';
 import 'package:test_project/views/pages/leave_page.dart';
 import 'package:test_project/views/pages/mydetails_page.dart';
 import 'package:test_project/views/pages/raise_request_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<String> newsletterImages = [];
+  bool loadingImages = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNewsletterImages();
+  }
+
+  Future<void> fetchNewsletterImages() async {
+    try {
+      final response =
+          await http.get(Uri.parse("https://coolbuffs.com/api/newsletter/"));
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        setState(() {
+          newsletterImages = data.map((e) => e['image_url'].toString()).toList();
+          loadingImages = false;
+        });
+      } else {
+        setState(() {
+          loadingImages = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        loadingImages = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> menuItems = [
-    {'title': 'My Details', 'page': const MyDetailsPage()},
-    {'title': 'Leaves', 'page': const LeavePage()},       // <- import your pages
-    {'title': 'Raise Request', 'page': const RaiseRequestPage()},
-    {'title': 'Attendance', 'page': const AttendancePage()},
-  ];
-
+      {'title': 'My Details', 'page': const MyDetailsPage()},
+      {'title': 'Leaves', 'page': const LeavePage()},
+      {'title': 'Raise Request', 'page': const RaiseRequestPage()},
+      {'title': 'Attendance', 'page': const AttendancePage()},
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -51,13 +90,13 @@ class HomePage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => menuItems[index]['page'],
-                            ),
-                          );
-                        },
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => menuItems[index]['page'],
+                        ),
+                      );
+                    },
                     child: Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -80,46 +119,42 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Newsletter below cards
+              // Newsletter section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    "Subscribe to our Newsletter",
+                    "Newsletter",
                     style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: "Enter your email",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Handle subscribe action
-                        },
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text("Subscribe"),
-                      ),
-                    ],
+                  const SizedBox(height: 16),
+
+                  // Slideshow
+                  SizedBox(
+                    height: 200,
+                    child: loadingImages
+                        ? const Center(child: CircularProgressIndicator())
+                        : newsletterImages.isEmpty
+                            ? const Center(child: Text("No images available"))
+                            : PageView.builder(
+                                itemCount: newsletterImages.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        newsletterImages[index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),
