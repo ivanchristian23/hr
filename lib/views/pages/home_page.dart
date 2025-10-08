@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String> newsletterImages = [];
+  List<Map<String, dynamic>> newsletters = [];
   bool loadingImages = true;
 
   @override
@@ -32,7 +32,12 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
         setState(() {
-          newsletterImages = data.map((e) => e['image_url'].toString()).toList();
+          newsletters = data
+              .map((e) => {
+                    'title': e['title'].toString(),
+                    'image_url': e['image_url'].toString(),
+                  })
+              .toList();
           loadingImages = false;
         });
       } else {
@@ -135,22 +140,39 @@ class _HomePageState extends State<HomePage> {
 
                   // Slideshow
                   SizedBox(
-                    height: 200,
+                    height: 260, // increased to fit image + title
                     child: loadingImages
                         ? const Center(child: CircularProgressIndicator())
-                        : newsletterImages.isEmpty
-                            ? const Center(child: Text("No images available"))
+                        : newsletters.isEmpty
+                            ? const Center(child: Text("No newsletters available"))
                             : PageView.builder(
-                                itemCount: newsletterImages.length,
+                                itemCount: newsletters.length,
                                 itemBuilder: (context, index) {
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        newsletterImages[index],
-                                        fit: BoxFit.cover,
-                                      ),
+                                    child: Column(
+                                      children: [
+                                        Expanded(
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: Image.network(
+                                              newsletters[index]['image_url'],
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          newsletters[index]['title'],
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },

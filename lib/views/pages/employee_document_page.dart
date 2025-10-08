@@ -296,7 +296,7 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.open_in_new),
+                          icon: const Icon(Icons.remove_red_eye_outlined),
                           onPressed: () => downloadDocument(doc),
                         ),
                         IconButton(
