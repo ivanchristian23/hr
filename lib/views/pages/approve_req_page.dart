@@ -18,13 +18,18 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   List<dynamic> allLeaves = [];
   List<dynamic> filteredLeaves = [];
+  bool isLoading = true; // 👈 added loading flag
 
   String? selectedStatus;
   String? selectedLeaveType;
 
   Future<void> fetchLeaves() async {
+    setState(() => isLoading = true); // start loading
     final token = await storage.read(key: 'auth_token');
-    if (token == null) return;
+    if (token == null) {
+      setState(() => isLoading = false);
+      return;
+    }
 
     final res = await http.get(
       Uri.parse("https://coolbuffs.com/api/managers/requests"),
@@ -42,15 +47,17 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
       setState(() {
         allLeaves = List.from(data);
         applyFilters();
+        isLoading = false; // stop loading
       });
     } else {
       print("Failed to load manager requests: ${res.body}");
+      setState(() => isLoading = false);
     }
   }
 
   Future<String> fetchUserName(int userId, String token) async {
     final res = await http.get(
-      Uri.parse("https://coolbuffs.com/api/user/name/$userId"),
+      Uri.parse("https://coolbuffs.com/api/users/user/name/$userId"),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode == 200) {
@@ -99,59 +106,52 @@ class _ApproveRequestPageState extends State<ApproveRequestPage> {
       print("Failed to update leave: ${res.body}");
     }
   }
-Future<void> downloadAttachment(int leaveId) async {
-  final token = await storage.read(key: 'auth_token');
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Not authorized")),
-    );
-    return;
-  }
 
-  final url = 'https://coolbuffs.com/api/leaves/$leaveId/attachment';
-
-  try {
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      // Get suggested filename from Content-Disposition
-      String filename = 'attachment_$leaveId';
-      final contentDisposition = response.headers['content-disposition'];
-      if (contentDisposition != null) {
-        final regex = RegExp(r'filename="(.+)"');
-        final match = regex.firstMatch(contentDisposition);
-        if (match != null) {
-          filename = match.group(1)!;
-        }
-      }
-
-      // Get directory and save file
-      final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/$filename';
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-
-      // Open the file
-      await OpenFile.open(filePath);
-    } else {
+  Future<void> downloadAttachment(int leaveId) async {
+    final token = await storage.read(key: 'auth_token');
+    if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to download file (${response.statusCode})')),
+        const SnackBar(content: Text("Not authorized")),
+      );
+      return;
+    }
+
+    final url = 'https://coolbuffs.com/api/leaves/$leaveId/attachment';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        String filename = 'attachment_$leaveId';
+        final contentDisposition = response.headers['content-disposition'];
+        if (contentDisposition != null) {
+          final regex = RegExp(r'filename="(.+)"');
+          final match = regex.firstMatch(contentDisposition);
+          if (match != null) {
+            filename = match.group(1)!;
+          }
+        }
+
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$filename';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        await OpenFile.open(filePath);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download file (${response.statusCode})')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error downloading: $e')),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error downloading: $e')),
-    );
   }
-}
-
-
-
 
   void showLeaveDetails(Map<String, dynamic> leave) {
     showModalBottomSheet(
@@ -164,14 +164,11 @@ Future<void> downloadAttachment(int leaveId) async {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
                 Text(
                   "${leave['leave_type']} (${leave['status']})",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 const SizedBox(height: 16),
-
-                // Details
                 _buildDetailRow("Employee", leave['user_name']),
                 _buildDetailRow("From", formatDate(leave['start_date'])),
                 _buildDetailRow("To", formatDate(leave['end_date'])),
@@ -180,8 +177,7 @@ Future<void> downloadAttachment(int leaveId) async {
 
                 const SizedBox(height: 20),
 
-                // 📎 Download Button (only if file exists)
-               if (leave['attachment'] != null) // You can also check if leave['attachment'] is true or has some flag
+                if (leave['attachment'] != null)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey[100],
@@ -189,12 +185,11 @@ Future<void> downloadAttachment(int leaveId) async {
                     ),
                     icon: const Icon(Icons.download),
                     label: const Text("Download Attachment"),
-                    onPressed: () => downloadAttachment(leave['id']),  // Pass the leave ID here
+                    onPressed: () => downloadAttachment(leave['id']),
                   ),
 
                 const SizedBox(height: 20),
 
-                // Action buttons if pending
                 if (leave['status'] == 'pending')
                   Row(
                     children: [
@@ -229,10 +224,7 @@ Future<void> downloadAttachment(int leaveId) async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "$label:",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text("$label:", style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 2),
           Text(value),
         ],
@@ -250,78 +242,87 @@ Future<void> downloadAttachment(int leaveId) async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Leave Requests to Approve")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                DropdownButton<String>(
-                  hint: const Text("Filter by Status"),
-                  value: selectedStatus,
-                  items: ['pending', 'approved', 'rejected']
-                      .map((status) => DropdownMenuItem(value: status, child: Text(status)))
-                      .toList(),
-                  onChanged: (value) {
-                    selectedStatus = value;
-                    applyFilters();
-                  },
-                ),
-                DropdownButton<String>(
-                  hint: const Text("Filter by Leave Type"),
-                  value: selectedLeaveType,
-                  items: ['Annual Leave', 'Sick Leave', 'Compassionate Leave', 'Maternity Leave']
-                      .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                      .toList(),
-                  onChanged: (value) {
-                    selectedLeaveType = value;
-                    applyFilters();
-                  },
-                ),
-                if (selectedStatus != null || selectedLeaveType != null)
-                  TextButton(
-                    onPressed: () {
-                      selectedStatus = null;
-                      selectedLeaveType = null;
-                      applyFilters();
-                    },
-                    child: const Text("Clear Filters"),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            filteredLeaves.isEmpty
-                ? const Text("No leave requests found.")
-                : ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: filteredLeaves.length,
-                    itemBuilder: (context, index) {
-                      final leave = filteredLeaves[index];
-                      return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          title: Text(
-                            "${leave['leave_type']} (${leave['status']})",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            "Employee: ${leave['user_name']}\n"
-                            "From: ${formatDate(leave['start_date'])}\n"
-                            "To: ${formatDate(leave['end_date'])}\n"
-                            "Balance: ${leave['balance']} days",
-                          ),
-                          onTap: () => showLeaveDetails(leave),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // 👈 show loading spinner
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      DropdownButton<String>(
+                        hint: const Text("Filter by Status"),
+                        value: selectedStatus,
+                        items: ['pending', 'approved', 'rejected']
+                            .map((status) =>
+                                DropdownMenuItem(value: status, child: Text(status)))
+                            .toList(),
+                        onChanged: (value) {
+                          selectedStatus = value;
+                          applyFilters();
+                        },
+                      ),
+                      DropdownButton<String>(
+                        hint: const Text("Filter by Leave Type"),
+                        value: selectedLeaveType,
+                        items: [
+                          'Annual Leave',
+                          'Sick Leave',
+                          'Compassionate Leave',
+                          'Maternity Leave'
+                        ]
+                            .map((type) =>
+                                DropdownMenuItem(value: type, child: Text(type)))
+                            .toList(),
+                        onChanged: (value) {
+                          selectedLeaveType = value;
+                          applyFilters();
+                        },
+                      ),
+                      if (selectedStatus != null || selectedLeaveType != null)
+                        TextButton(
+                          onPressed: () {
+                            selectedStatus = null;
+                            selectedLeaveType = null;
+                            applyFilters();
+                          },
+                          child: const Text("Clear Filters"),
                         ),
-                      );
-                    },
+                    ],
                   ),
-          ],
-        ),
-      ),
+                  const SizedBox(height: 12),
+                  filteredLeaves.isEmpty
+                      ? const Text("No leave requests found.")
+                      : ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: filteredLeaves.length,
+                          itemBuilder: (context, index) {
+                            final leave = filteredLeaves[index];
+                            return Card(
+                              elevation: 3,
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              child: ListTile(
+                                title: Text(
+                                  "${leave['leave_type']} (${leave['status']})",
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  "Employee: ${leave['user_name']}\n"
+                                  "From: ${formatDate(leave['start_date'])}\n"
+                                  "To: ${formatDate(leave['end_date'])}\n"
+                                  "Balance: ${leave['balance']} days",
+                                ),
+                                onTap: () => showLeaveDetails(leave),
+                              ),
+                            );
+                          },
+                        ),
+                ],
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: fetchLeaves,
         child: const Icon(Icons.refresh),

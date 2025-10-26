@@ -22,7 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _selectedUserType;
 
   final List<String> _userTypes = [
-    "Head office Employee",
+    "Head Office Employee",
     "External Employee"
   ];
 
@@ -33,7 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isLoading = false;
 
   Future<void> fetchLineManagers() async {
-    final response = await http.get(Uri.parse('https://coolbuffs.com/api/line_managers'));
+    final response = await http.get(Uri.parse('https://coolbuffs.com/api/managers'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:test_project/data/notifiers.dart';
 
 // Import your existing pages
 import 'package:test_project/views/pages/attendance_page.dart';
 import 'package:test_project/views/pages/leave_page.dart';
 import 'package:test_project/views/pages/mydetails_page.dart';
 import 'package:test_project/views/pages/raise_request_page.dart';
+import 'package:test_project/views/pages/admin_raise_request_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,16 +29,19 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchNewsletterImages() async {
     try {
-      final response =
-          await http.get(Uri.parse("https://coolbuffs.com/api/newsletter/"));
+      final response = await http.get(
+        Uri.parse("https://coolbuffs.com/api/newsletter/"),
+      );
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
         setState(() {
           newsletters = data
-              .map((e) => {
-                    'title': e['title'].toString(),
-                    'image_url': e['image_url'].toString(),
-                  })
+              .map(
+                (e) => {
+                  'title': e['title'].toString(),
+                  'image_url': e['image_url'].toString(),
+                },
+              )
               .toList();
           loadingImages = false;
         });
@@ -54,10 +59,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final role = userRoleNotifier.value;
+
     final List<Map<String, dynamic>> menuItems = [
       {'title': 'My Details', 'page': const MyDetailsPage()},
       {'title': 'Leaves', 'page': const LeavePage()},
-      {'title': 'Raise Request', 'page': const RaiseRequestPage()},
+      {
+        'title': role == 'admin' ? 'Letter Requests' : 'Raise Request',
+        'page': role == 'admin'
+            ? const AdminRaiseRequestPage()
+            : const RaiseRequestPage(),
+      },
       {'title': 'Attendance', 'page': const AttendancePage()},
     ];
 
@@ -74,8 +86,8 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                     "Workspace",
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -130,10 +142,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const Text(
                     "Newsletter",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -144,39 +153,38 @@ class _HomePageState extends State<HomePage> {
                     child: loadingImages
                         ? const Center(child: CircularProgressIndicator())
                         : newsletters.isEmpty
-                            ? const Center(child: Text("No newsletters available"))
-                            : PageView.builder(
-                                itemCount: newsletters.length,
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Image.network(
-                                              newsletters[index]['image_url'],
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                            ),
-                                          ),
+                        ? const Center(child: Text("No newsletters available"))
+                        : PageView.builder(
+                            itemCount: newsletters.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          newsletters[index]['image_url'],
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          newsletters[index]['title'],
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      newsletters[index]['title'],
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),

@@ -50,39 +50,49 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
   }
 
   Future<void> fetchUserAndManager() async {
-    final token = await storage.read(key: 'auth_token');
-    if (token == null) {
-      print("No token found");
-      return;
-    }
-
-    // 1️⃣ Get user ID
-    final userRes = await http.get(
-      Uri.parse("https://coolbuffs.com/api/users/user/id"),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (userRes.statusCode == 200) {
-      final userData = jsonDecode(userRes.body);
-      setState(() {
-        userId = userData['id'];
-      });
-
-      // 2️⃣ Get line_manager_id
-      final managerRes = await http.get(
-        Uri.parse("https://coolbuffs.com/api/user/line-manager/${userData['id']}"),
-      );
-      if (managerRes.statusCode == 200) {
-        final managerData = jsonDecode(managerRes.body);
-        setState(() {
-          lineManagerId = managerData['line_manager_id'];
-        });
-      } else {
-        print("Failed to load line manager ID");
-      }
-    } else {
-      print("Failed to load user ID");
-    }
+  final token = await storage.read(key: 'auth_token');
+  if (token == null) {
+    print("❌ No token found");
+    return;
   }
+
+  print("🔑 Token found, fetching user ID...");
+
+  // 1️⃣ Get user ID
+  final userRes = await http.get(
+    Uri.parse("https://coolbuffs.com/api/users/user/id"),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  print("📡 User ID API response: ${userRes.statusCode}");
+  if (userRes.statusCode == 200) {
+    final userData = jsonDecode(userRes.body);
+    setState(() {
+      userId = userData['id'];
+    });
+    print("✅ User ID loaded: $userId");
+
+    // 2️⃣ Get line_manager_id
+    print("🔍 Fetching line manager for user ID: $userId");
+    final managerRes = await http.get(
+      Uri.parse("https://coolbuffs.com/api/users/user/line-manager/${userData['id']}"),
+    );
+    print("📡 Line Manager API response: ${managerRes.statusCode}");
+    print("📄 Line Manager Response Body: ${managerRes.body}");
+
+    if (managerRes.statusCode == 200) {
+      final managerData = jsonDecode(managerRes.body);
+      setState(() {
+        lineManagerId = managerData['line_manager_id'];
+      });
+      print("✅ Line Manager ID loaded: $lineManagerId");
+    } else {
+      print("❌ Failed to load line manager ID");
+    }
+  } else {
+    print("❌ Failed to load user ID: ${userRes.body}");
+  }
+}
 
   void calculateLeaveCount() {
     if (startDate != null && endDate != null) {
