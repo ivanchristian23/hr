@@ -31,6 +31,7 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
       });
     }
   }
+
   int? userId;
   int? lineManagerId;
   Map<String, dynamic>? leaveBalances;
@@ -50,49 +51,51 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
   }
 
   Future<void> fetchUserAndManager() async {
-  final token = await storage.read(key: 'auth_token');
-  if (token == null) {
-    print("❌ No token found");
-    return;
-  }
-
-  print("🔑 Token found, fetching user ID...");
-
-  // 1️⃣ Get user ID
-  final userRes = await http.get(
-    Uri.parse("https://coolbuffs.com/api/users/user/id"),
-    headers: {'Authorization': 'Bearer $token'},
-  );
-
-  print("📡 User ID API response: ${userRes.statusCode}");
-  if (userRes.statusCode == 200) {
-    final userData = jsonDecode(userRes.body);
-    setState(() {
-      userId = userData['id'];
-    });
-    print("✅ User ID loaded: $userId");
-
-    // 2️⃣ Get line_manager_id
-    print("🔍 Fetching line manager for user ID: $userId");
-    final managerRes = await http.get(
-      Uri.parse("https://coolbuffs.com/api/users/user/line-manager/${userData['id']}"),
-    );
-    print("📡 Line Manager API response: ${managerRes.statusCode}");
-    print("📄 Line Manager Response Body: ${managerRes.body}");
-
-    if (managerRes.statusCode == 200) {
-      final managerData = jsonDecode(managerRes.body);
-      setState(() {
-        lineManagerId = managerData['line_manager_id'];
-      });
-      print("✅ Line Manager ID loaded: $lineManagerId");
-    } else {
-      print("❌ Failed to load line manager ID");
+    final token = await storage.read(key: 'auth_token');
+    if (token == null) {
+      print("❌ No token found");
+      return;
     }
-  } else {
-    print("❌ Failed to load user ID: ${userRes.body}");
+
+    print("🔑 Token found, fetching user ID...");
+
+    // 1️⃣ Get user ID
+    final userRes = await http.get(
+      Uri.parse("https://coolbuffs.com/api/users/user/id"),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print("📡 User ID API response: ${userRes.statusCode}");
+    if (userRes.statusCode == 200) {
+      final userData = jsonDecode(userRes.body);
+      setState(() {
+        userId = userData['id'];
+      });
+      print("✅ User ID loaded: $userId");
+
+      // 2️⃣ Get line_manager_id
+      print("🔍 Fetching line manager for user ID: $userId");
+      final managerRes = await http.get(
+        Uri.parse(
+          "https://coolbuffs.com/api/users/user/line-manager/${userData['id']}",
+        ),
+      );
+      print("📡 Line Manager API response: ${managerRes.statusCode}");
+      print("📄 Line Manager Response Body: ${managerRes.body}");
+
+      if (managerRes.statusCode == 200) {
+        final managerData = jsonDecode(managerRes.body);
+        setState(() {
+          lineManagerId = managerData['line_manager_id'];
+        });
+        print("✅ Line Manager ID loaded: $lineManagerId");
+      } else {
+        print("❌ Failed to load line manager ID");
+      }
+    } else {
+      print("❌ Failed to load user ID: ${userRes.body}");
+    }
   }
-}
 
   void calculateLeaveCount() {
     if (startDate != null && endDate != null) {
@@ -109,50 +112,84 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
   }
 
   Future<void> submitLeave() async {
-  if (!_formKey.currentState!.validate()) return;
-  if (userId == null || lineManagerId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("User ID or Manager ID not loaded")),
+    if (!_formKey.currentState!.validate()) return;
+    if (userId == null || lineManagerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User ID or Manager ID not loaded")),
+      );
+      return;
+    }
+
+    // ✅ Validate leave count against available balance
+    final count = int.tryParse(countController.text) ?? 0;
+    if (leaveType == 'Annual Leave' &&
+        leaveBalances != null &&
+        count > (leaveBalances!['balance'] ?? 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "You cannot request more than your annual leave balance (${leaveBalances!['balance']} days).",
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (leaveType == 'Sick Leave' &&
+        leaveBalances != null &&
+        count > (leaveBalances!['sick_leave_balance'] ?? 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "You cannot request more than your sick leave balance (${leaveBalances!['sick_leave_balance']} days).",
+          ),
+        ),
+      );
+      return;
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse("https://coolbuffs.com/api/leaves/createleaves"),
     );
-    return;
+
+    request.fields['user_id'] = userId.toString();
+    request.fields['line_manager_id'] = lineManagerId.toString();
+    request.fields['start_date'] = startDate!.toIso8601String();
+    request.fields['end_date'] = endDate!.toIso8601String();
+    request.fields['leave_type'] = leaveType;
+    request.fields['count'] = countController.text;
+    request.fields['details'] = detailsController.text;
+    request.fields['status'] = "Pending";
+
+    if (selectedFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('attachment', selectedFile!.path),
+      );
+    }
+
+    final response = await request.send();
+    final responseData = await response.stream.bytesToString();
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            jsonDecode(responseData)['message'] ?? "Leave created successfully",
+          ),
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            jsonDecode(responseData)['message'] ?? "Leave creation failed",
+          ),
+        ),
+      );
+    }
   }
-
-  final request = http.MultipartRequest(
-    'POST',
-    Uri.parse("https://coolbuffs.com/api/leaves/createleaves"),
-  );
-
-  request.fields['user_id'] = userId.toString();
-  request.fields['line_manager_id'] = lineManagerId.toString();
-  request.fields['start_date'] = startDate!.toIso8601String();
-  request.fields['end_date'] = endDate!.toIso8601String();
-  request.fields['leave_type'] = leaveType;
-  request.fields['count'] = countController.text;
-  request.fields['details'] = detailsController.text;
-  request.fields['status'] = "Pending";
-
-  if (selectedFile != null) {
-    request.files.add(await http.MultipartFile.fromPath(
-      'attachment',
-      selectedFile!.path,
-    ));
-  }
-
-  final response = await request.send();
-  final responseData = await response.stream.bytesToString();
-
-  if (response.statusCode == 201) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(jsonDecode(responseData)['message'] ?? "Leave created successfully")),
-    );
-    Navigator.pop(context, true);
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(jsonDecode(responseData)['message'] ?? "Leave creation failed")),
-    );
-  }
-}
-
 
   @override
   void initState() {
@@ -237,12 +274,16 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
                 onChanged: (value) => setState(() => leaveType = value!),
                 decoration: const InputDecoration(labelText: "Leave Type"),
               ),
-               SizedBox(height: 10),
+              SizedBox(height: 10),
               if (leaveBalances != null) ...[
-                Text("Annual Leave Balance: ${leaveBalances!['balance']} days", style: TextStyle(fontSize: 15),),
+                Text(
+                  "Annual Leave Balance: ${leaveBalances!['balance']} days",
+                  style: TextStyle(fontSize: 15),
+                ),
                 SizedBox(height: 10),
                 Text(
-                  "Sick Leave Balance: ${leaveBalances!['sick_leave_balance']} days", style: TextStyle(fontSize: 15),
+                  "Sick Leave Balance: ${leaveBalances!['sick_leave_balance']} days",
+                  style: TextStyle(fontSize: 15),
                 ),
               ],
               TextFormField(
@@ -260,7 +301,9 @@ class _CreateLeavePageState extends State<CreateLeavePage> {
               ElevatedButton.icon(
                 onPressed: pickAttachment,
                 icon: Icon(Icons.attach_file),
-                label: Text(selectedFile == null ? "Add Attachment" : "Change Attachment"),
+                label: Text(
+                  selectedFile == null ? "Add Attachment" : "Change Attachment",
+                ),
               ),
               if (selectedFile != null)
                 Text("Selected: ${selectedFile!.path.split('/').last}"),

@@ -29,7 +29,7 @@ class _ReimbursementRequestPageState extends State<ReimbursementRequestPage> {
 
   Future<void> _fetchUserId() async {
     try {
-      final token = await _storage.read(key: 'token');
+      final token = await _storage.read(key: 'auth_token');
       if (token == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Authentication token not found.")),

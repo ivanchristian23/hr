@@ -28,6 +28,7 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
   final storage = FlutterSecureStorage();
   final documentTypeController = TextEditingController();
   bool adminOnly = false;
+  bool isUploading = false;
 
   @override
   void initState() {
@@ -75,6 +76,8 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
       return;
     }
 
+    setState(() => isUploading = true); // ⏳ Start loading
+
     final token = await storage.read(key: 'auth_token');
     final request = http.MultipartRequest(
       'POST',
@@ -91,22 +94,31 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
 
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
 
-    final response = await request.send();
-    final responseData = await response.stream.bytesToString();
+    try {
+      final response = await request.send();
+      final responseData = await response.stream.bytesToString();
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Document uploaded successfully")),
+        );
+        setState(() {
+          selectedDocument = null;
+          documentTypeController.clear();
+        });
+        fetchDocuments();
+        Navigator.pop(context); // ✅ Close modal after success
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Upload failed: $responseData")));
+      }
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Document uploaded successfully")));
-      setState(() {
-        selectedDocument = null;
-        documentTypeController.clear();
-      });
-      fetchDocuments();
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Upload failed: $responseData")));
+      ).showSnackBar(SnackBar(content: Text("Error uploading: $e")));
+    } finally {
+      setState(() => isUploading = false); // ✅ Stop loading
     }
   }
 
@@ -218,6 +230,8 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: !isUploading,
+      enableDrag: !isUploading,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -255,9 +269,25 @@ class _EmployeeDocumentsPageState extends State<EmployeeDocumentsPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: uploadDocument,
+                onPressed: isUploading ? null : uploadDocument,
                 icon: const Icon(Icons.upload_file),
-                label: const Text("Upload Document"),
+                label: isUploading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text("Uploading..."),
+                        ],
+                      )
+                    : const Text("Upload Document"),
               ),
             ],
           ),

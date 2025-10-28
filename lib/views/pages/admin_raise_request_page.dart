@@ -22,12 +22,18 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
 
   Future<void> fetchRequests() async {
     try {
-      const baseUrl = 'https://www.coolbuffs.com/api/raiserequest'; // Change to your server IP/domain
+      const baseUrl =
+          'https://www.coolbuffs.com/api/raiserequest'; // Change to your server IP/domain
 
-      final letterResponse = await http.get(Uri.parse('$baseUrl/letter-request'));
-      final reimbursementResponse = await http.get(Uri.parse('$baseUrl/reimbursement-request'));
+      final letterResponse = await http.get(
+        Uri.parse('$baseUrl/letter-request'),
+      );
+      final reimbursementResponse = await http.get(
+        Uri.parse('$baseUrl/reimbursement-request'),
+      );
 
-      if (letterResponse.statusCode == 200 && reimbursementResponse.statusCode == 200) {
+      if (letterResponse.statusCode == 200 &&
+          reimbursementResponse.statusCode == 200) {
         setState(() {
           letterRequests = jsonDecode(letterResponse.body);
           reimbursementRequests = jsonDecode(reimbursementResponse.body);
@@ -61,14 +67,18 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ...letterRequests.map((req) => _buildLetterCard(req)).toList(),
+                  ...letterRequests
+                      .map((req) => _buildLetterCard(req))
+                      .toList(),
                   const SizedBox(height: 24),
                   const Text(
                     "Reimbursement Requests",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ...reimbursementRequests.map((req) => _buildReimbursementCard(req)).toList(),
+                  ...reimbursementRequests
+                      .map((req) => _buildReimbursementCard(req))
+                      .toList(),
                 ],
               ),
             ),
@@ -76,6 +86,8 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
   }
 
   Widget _buildLetterCard(dynamic req) {
+    final fullName = "${req['first_name'] ?? ''} ${req['last_name'] ?? ''}"
+        .trim();
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       elevation: 3,
@@ -83,7 +95,17 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
       child: ListTile(
         leading: const Icon(Icons.mail_outline, color: Colors.blueAccent),
         title: Text(req['letter_type'] ?? 'Unknown'),
-        subtitle: Text(req['description'] ?? ''),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (req['description'] != null) Text(req['description']),
+            if (fullName.isNotEmpty)
+              Text(
+                "Requested by: $fullName",
+                style: const TextStyle(color: Colors.grey),
+              ),
+          ],
+        ),
         trailing: Text(
           _formatDate(req['created_at']),
           style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -93,6 +115,8 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
   }
 
   Widget _buildReimbursementCard(dynamic req) {
+    final fullName = "${req['first_name'] ?? ''} ${req['last_name'] ?? ''}"
+        .trim();
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       elevation: 3,
@@ -100,7 +124,17 @@ class _AdminRaiseRequestPageState extends State<AdminRaiseRequestPage> {
       child: ListTile(
         leading: const Icon(Icons.attach_money, color: Colors.green),
         title: Text("QAR ${req['amount']}"),
-        subtitle: Text(req['description'] ?? ''),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (req['description'] != null) Text(req['description']),
+            if (fullName.isNotEmpty)
+              Text(
+                "Requested by: $fullName",
+                style: const TextStyle(color: Colors.grey),
+              ),
+          ],
+        ),
         trailing: Text(
           _formatDate(req['created_at']),
           style: const TextStyle(fontSize: 12, color: Colors.grey),

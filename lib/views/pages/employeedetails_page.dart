@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:test_project/views/pages/employee_leave_audit_page.dart';
 
 class EmployeeDetailsPage extends StatefulWidget {
   final int userId;
@@ -235,7 +236,9 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
     String userType,
   ) async {
     final response = await http.put(
-      Uri.parse("https://coolbuffs.com/api/users/edit_user_info/${widget.userId}"),
+      Uri.parse(
+        "https://coolbuffs.com/api/users/edit_user_info/${widget.userId}",
+      ),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'job_title': jobTitle,
@@ -250,7 +253,9 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
 
   Future<void> updateLeaveInfo(Map<String, dynamic> data) async {
     final response = await http.put(
-      Uri.parse("https://coolbuffs.com/api/users/edit_user_leave/${widget.userId}"),
+      Uri.parse(
+        "https://coolbuffs.com/api/users/edit_user_leave/${widget.userId}",
+      ),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     );
@@ -367,8 +372,12 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
             ),
             SizedBox(height: 20),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            SizedBox(height: 20),
+
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
               children: [
                 ElevatedButton.icon(
                   onPressed: () => showEditPersonalInfoModal(context),
@@ -379,6 +388,19 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                   onPressed: () => showEditLeaveInfoModal(context, leaves),
                   icon: Icon(Icons.edit_calendar),
                   label: Text("Edit Leave Info"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            EmployeeLeaveAuditPage(userId: widget.userId, userName: "${userData!['first_name']} ${userData!['last_name']}",),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.history),
+                  label: Text("Leave Audit"),
                 ),
               ],
             ),
